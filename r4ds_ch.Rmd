@@ -1,0 +1,6 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Going to go through the R for [Data Science chapter on functions](https://r4ds.had.co.nz/functions.html).  I probably know most of it, but I don't want any holes for when I'm working on my package.
