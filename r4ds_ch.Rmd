@@ -1,6 +1,149 @@
 ---
-title: "R Notebook"
+title: "Functions: R4DS Chapter"
 output: html_notebook
 ---
 
+```{r}
+library(tidyverse)
+```
+
+## Whatcha doing?
+
 Going to go through the R for [Data Science chapter on functions](https://r4ds.had.co.nz/functions.html).  I probably know most of it, but I don't want any holes for when I'm working on my package.
+
+## Why functions?
+* Naming: can give info with a nice clear name
+* Centralization: just gotta change it once rather than everywhere
+* Error reduction: Copy and pasting introduces errors not easily noticed
+
+Follows the "do not repeat yourself" (DRY) principle.  Want to reduce the amount you have to change because you'll never get it all and introduce bugs.
+
+## Good practices
+
+### Quick tips
+* Rewrite code using temporary variables with general names
+* Reduce duplication as much as possible
+* Put intermediate calculations into named variables
+  + Gives info on what the code is doing
+* Make code work with simple input, then change it into a function.
+* Check function with a few different inputs
+  
+### Key Steps
+1. **name:** give info quickly to user on what's happening
+2. **arguments:** inputs
+3. **body:** has code between `{`
+
+### Exercise (19.2.1)
+```{r}
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE, finite = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+
+1. Why is `TRUE` not a parameter? What happens if x had a missing value and `na.rm` was `FALSE`
+```{r}
+range(c(1:10, NA), na.rm = FALSE)
+```
+The range function returns NAs if any value in the input vector has an NA.  This would cause a bug in rescaling and everything would be NA. So don't let the user have this option by messing with the `na.rm` parameter.
+
+2. Rewrite `rescale01` so that `-Inf` is 0 and `Inf` is 1
+```{r}
+rescale01 <- function(x) {
+  # Change Inf to same value of highest actual number
+  x[x == Inf] <- max(x[x != Inf])
+  # Change -Inf to same value of lowest actual number
+  x[x == -Inf] <- min(x[x != -Inf])
+  
+  rng <- range(x, na.rm = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+
+x <- c(Inf, -Inf, 0:10)
+rescale01(x)
+```
+
+3. Turn the following into functions
+```{r}
+x <- c(1:9, NA)
+
+mean(is.na(x))
+
+prop_na <- function(x) {
+  mean(is.na(x))
+}
+prop_na(x)
+```
+
+```{r}
+x <- c(1:9, NA)
+
+x / sum(x, na.rm = TRUE)
+
+prop <- function(x) {
+  x / sum(x, na.rm = TRUE)
+}
+
+prop(x)
+```
+
+```{r}
+x <- c(1:9, NA)
+
+sd(x, na.rm = TRUE) / mean(x, na.rm = TRUE)
+
+coef_v <- function(x) {
+  sd(x, na.rm = TRUE) / mean(x, na.rm = TRUE)
+}
+
+coef_v(x)
+```
+
+4. functions to compute the variance and skewness of a numeric vector
+```{r}
+x <- c(1:9, NA)
+
+each_var2 <- (x - mean(x, na.rm = TRUE))^2
+sum(each_var2, na.rm = TRUE) / (length(each_var2[!is.na(each_var2)]) - 1)
+
+my_var <- function(x) {
+  each_var2 <- (x - mean(x, na.rm = TRUE))^2
+  sum(each_var2, na.rm = TRUE) / (length(each_var2[!is.na(each_var2)]) - 1)
+}
+
+my_var(x)
+var(x, na.rm = TRUE)
+```
+
+```{r}
+x <- c(runif(9, min = 0, max = 4), NA)
+
+each_var3 <- (x - mean(x, na.rm = TRUE))^3
+sum_var3 <- sum(each_var3, na.rm = TRUE) / (length(each_var[!is.na(each_var3)]) - 2)
+sum_var3 / my_var(x)^1.5
+
+skew <- function(x) {
+  each_var3 <- (x - mean(x, na.rm = TRUE))^3
+  sum_var3 <- sum(each_var3, na.rm = TRUE) / (length(each_var[!is.na(each_var3)]) - 2)
+  sum_var3 / my_var(x)^1.5  
+}
+
+skew(x)
+```
+
+5. write a function that takes two vectors of the same length and returns number of positons that have NA in both.
+```{r}
+x <- rep(c(1, 2, NA), 4)
+y <- rep(c(1, NA), 6)
+
+sum(is.na(x) & is.na(y))
+
+both_na <- function(x, y) {
+  sum(is.na(x) & is.na(y))
+}
+
+both_na(x, y)
+```
+
+6. `is_directory` checks to see if the path is a directory. And `is_readable` checks to see if the file has read permissions.  What's awesome is that that these functions are human readable, and instead of using comments for the code, you can use easily use these.  Also, if you are going to use them multiple times then you won't have to copy and paste the code.
+
